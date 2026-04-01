@@ -1,0 +1,22 @@
+{
+  "name": "tripswipe",
+  "private": true,
+  "version": "0.1.0",
+  "description": "TripSwipe Strapi backend",
+  "scripts": {
+    "develop": "strapi develop",
+    "start": "strapi start",
+    "build": "strapi build",
+    "strapi": "strapi"
+  },
+  "dependencies": {
+    "@strapi/strapi": "^5.41.1",
+    "@strapi/plugin-cloud": "^5.41.1",
+    "@strapi/plugin-users-permissions": "^5.41.1",
+    "better-sqlite3": "^11.0.0"
+  },
+  "engines": {
+    "node": ">=18.0.0 <=22.x.x",
+    "npm": ">=6.0.0"
+  }
+}
