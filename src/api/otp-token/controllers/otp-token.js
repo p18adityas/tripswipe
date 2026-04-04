@@ -82,13 +82,14 @@ module.exports = createCoreController('api::otp-token.otp-token', ({ strapi }) =
 
   /**
    * POST /api/auth/google
-   * Verify Google ID token and return JWT + user.
+   * Accepts either a Google ID token or an access token.
+   * Verifies with Google, finds or creates user, returns JWT.
    */
   async googleSignIn(ctx) {
     const { id_token } = ctx.request.body;
 
     if (!id_token) {
-      return ctx.badRequest('Google ID token is required');
+      return ctx.badRequest('Google token is required');
     }
 
     const clientId = process.env.GOOGLE_CLIENT_ID;
@@ -97,24 +98,42 @@ module.exports = createCoreController('api::otp-token.otp-token', ({ strapi }) =
     }
 
     try {
-      const { OAuth2Client } = require('google-auth-library');
-      const client = new OAuth2Client(clientId);
+      let googleEmail, googleName;
 
-      const ticket = await client.verifyIdToken({
-        idToken: id_token,
-        audience: clientId,
-      });
-
-      const payload = ticket.getPayload();
-
-      if (!payload.email_verified) {
-        return ctx.unauthorized('Google email not verified');
+      // Try as ID token first
+      try {
+        const { OAuth2Client } = require('google-auth-library');
+        const client = new OAuth2Client(clientId);
+        const ticket = await client.verifyIdToken({
+          idToken: id_token,
+          audience: clientId,
+        });
+        const payload = ticket.getPayload();
+        if (!payload.email_verified) {
+          return ctx.unauthorized('Google email not verified');
+        }
+        googleEmail = payload.email;
+        googleName = payload.name;
+      } catch {
+        // If ID token verification fails, try as access token
+        const res = await fetch('https://www.googleapis.com/oauth2/v3/userinfo', {
+          headers: { Authorization: `Bearer ${id_token}` },
+        });
+        if (!res.ok) {
+          return ctx.unauthorized('Invalid Google token');
+        }
+        const userInfo = await res.json();
+        if (!userInfo.email) {
+          return ctx.unauthorized('Could not get email from Google');
+        }
+        googleEmail = userInfo.email;
+        googleName = userInfo.name;
       }
 
       const otpService = strapi.service('api::otp-token.otp-token');
       const user = await otpService.findOrCreateUserByGoogle({
-        email: payload.email,
-        name: payload.name,
+        email: googleEmail,
+        name: googleName,
       });
 
       const jwt = strapi.plugin('users-permissions').service('jwt').issue({ id: user.id });
@@ -125,13 +144,13 @@ module.exports = createCoreController('api::otp-token.otp-token', ({ strapi }) =
           id: user.id,
           username: user.username,
           email: user.email,
-          display_name: user.display_name || payload.name,
+          display_name: user.display_name || googleName,
           profile_setup_complete: user.profile_setup_complete,
         },
       };
     } catch (err) {
       strapi.log.error('Google Sign-In error:', err);
-      return ctx.unauthorized('Invalid Google ID token');
+      return ctx.unauthorized('Google sign-in failed');
     }
   },
 
