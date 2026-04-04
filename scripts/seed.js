@@ -456,6 +456,107 @@ async function seed() {
   }
 
   console.log(`\n  Places: ${createdCount} created, ${skippedCount} skipped (already exist).`);
+
+  // -----------------------------------------------------------------------
+  // 7. Set public permissions for read-only access
+  // -----------------------------------------------------------------------
+  console.log('\n[7/7] Setting public API permissions...');
+
+  const publicRole = await db.query('plugin::users-permissions.role').findOne({
+    where: { type: 'public' },
+  });
+
+  if (publicRole) {
+    // Content types that should be publicly readable
+    const publicReadable = [
+      'api::country.country',
+      'api::state.state',
+      'api::city.city',
+      'api::place.place',
+      'api::tag.tag',
+    ];
+
+    for (const uid of publicReadable) {
+      const apiName = uid.split('.')[1]; // e.g., 'country'
+      for (const action of ['find', 'findOne']) {
+        const permAction = `${uid}.${action}`;
+        const existing = await db.query('plugin::users-permissions.permission').findOne({
+          where: { action: permAction, role: publicRole.id },
+        });
+        if (!existing) {
+          await db.query('plugin::users-permissions.permission').create({
+            data: { action: permAction, role: publicRole.id },
+          });
+          console.log(`  + Public: ${apiName}.${action}`);
+        }
+      }
+    }
+
+    // Custom public routes (shared trip view, auth endpoints are already auth:false)
+    const customPublicActions = [
+      'api::trip.trip.sharedView',
+    ];
+    for (const action of customPublicActions) {
+      const existing = await db.query('plugin::users-permissions.permission').findOne({
+        where: { action, role: publicRole.id },
+      });
+      if (!existing) {
+        await db.query('plugin::users-permissions.permission').create({
+          data: { action, role: publicRole.id },
+        });
+        console.log(`  + Public: ${action}`);
+      }
+    }
+
+    // Authenticated role permissions
+    const authRole = await db.query('plugin::users-permissions.role').findOne({
+      where: { type: 'authenticated' },
+    });
+
+    if (authRole) {
+      const authActions = [
+        // All public read permissions too
+        ...publicReadable.flatMap(uid => [`${uid}.find`, `${uid}.findOne`]),
+        // Swipe endpoints
+        'api::swipe.swipe.feed',
+        'api::swipe.swipe.recordSwipe',
+        'api::swipe.swipe.undoSwipe',
+        'api::swipe.swipe.mySwipes',
+        // Trip endpoints
+        'api::trip.trip.find',
+        'api::trip.trip.findOne',
+        'api::trip.trip.create',
+        'api::trip.trip.update',
+        'api::trip.trip.delete',
+        'api::trip.trip.myTrips',
+        'api::trip.trip.generateItinerary',
+        'api::trip.trip.saveTrip',
+        'api::trip.trip.archiveTrip',
+        'api::trip.trip.duplicateTrip',
+        'api::trip.trip.share',
+        'api::trip.trip.sharedView',
+        // Itinerary items
+        'api::itinerary-item.itinerary-item.find',
+        'api::itinerary-item.itinerary-item.findOne',
+        'api::itinerary-item.itinerary-item.create',
+        'api::itinerary-item.itinerary-item.update',
+        'api::itinerary-item.itinerary-item.delete',
+      ];
+
+      for (const action of authActions) {
+        const existing = await db.query('plugin::users-permissions.permission').findOne({
+          where: { action, role: authRole.id },
+        });
+        if (!existing) {
+          await db.query('plugin::users-permissions.permission').create({
+            data: { action, role: authRole.id },
+          });
+        }
+      }
+      console.log(`  + Authenticated role: ${authActions.length} permissions set`);
+    }
+  }
+
   console.log('\n=== Seed complete ===');
 
   process.exit(0);
