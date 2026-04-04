@@ -1,8 +1,9 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router';
 import { Plus, Search, Calendar, Users, MapPin, Clock } from 'lucide-react';
 import { motion } from 'motion/react';
 import { useTripStore, TripStatus, Trip } from '../store/tripStore';
+import { useUserStore } from '../store/userStore';
 import { Button } from '../components/ui/button';
 import { Input } from '../components/ui/input';
 import { ImageWithFallback } from '../components/figma/ImageWithFallback';
@@ -115,9 +116,17 @@ function TripCard({ trip, onClick }: { trip: Trip; onClick: () => void }) {
 
 export function Trips() {
   const navigate = useNavigate();
-  const { trips, setCurrentTrip } = useTripStore();
+  const { trips, setCurrentTrip, fetchTrips, loading } = useTripStore();
+  const { isAuthenticated } = useUserStore();
   const [activeTab, setActiveTab] = useState<TripStatus | 'all'>('all');
   const [searchQuery, setSearchQuery] = useState('');
+
+  // Fetch trips from API when authenticated
+  useEffect(() => {
+    if (isAuthenticated) {
+      fetchTrips();
+    }
+  }, [isAuthenticated]);
   
   // Filter trips
   const filteredTrips = trips.filter((trip) => {

@@ -28,6 +28,7 @@ import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription, SheetTr
 import { AuthGate } from './AuthGate';
 import { toast } from 'sonner';
 import { cities } from '../data/mockData';
+import { trips as tripsApi } from '../services/api';
 
 interface ItineraryItem {
   id: string;
@@ -135,12 +136,21 @@ export function GeneratedItinerary() {
     toast('Item removed');
   };
 
-  const handleGenerateLink = () => {
-    // Generate a mock shareable link
-    const tripId = Math.random().toString(36).substr(2, 9);
-    const link = `${window.location.origin}/shared/${tripId}`;
+  const handleGenerateLink = async () => {
+    // Try to generate link via API if we have a saved trip
+    const currentTrip = useTripStore.getState().trips.find(t => t.title === itineraryDetails?.name);
+    if (currentTrip?._apiId) {
+      try {
+        const res = await tripsApi.share(currentTrip._apiId);
+        setShareLink(res.share_url);
+        toast.success('Share link created!');
+        return;
+      } catch { /* fall through to local */ }
+    }
+    const id = Math.random().toString(36).substr(2, 9);
+    const link = `${window.location.origin}/shared/${id}`;
     setShareLink(link);
-    toast.success('Share link created!', { icon: '🔗' });
+    toast.success('Share link created!');
   };
 
   const handleCopyLink = async () => {
@@ -170,63 +180,72 @@ export function GeneratedItinerary() {
     }
   };
 
-  const handleSave = () => {
-    // Check if user is authenticated
+  const handleSave = async () => {
     if (!isAuthenticated) {
       setAuthAction('save');
       setPendingAction({ type: 'save', context: { itinerary, itineraryDetails, selections } });
       setShowAuthGate(true);
       return;
     }
-    
-    // Get city info
+
     const city = cities.find(c => c.id === selectedCity);
     const coverImage = selections[0]?.place ? (placeImageMap[selections[0].place.id]?.[0] || '') : '';
-    
-    // Convert itinerary to days format
+    const { selectedCityApiId } = useAppStore.getState();
+
+    // Try to create trip via API first
+    try {
+      const { createTripViaApi, generateItineraryViaApi } = useTripStore.getState();
+      const trip = await createTripViaApi({
+        name: itineraryDetails?.name || 'My Trip',
+        destination: selectedCityApiId || undefined,
+        num_days: itineraryDetails?.numberOfDays || 3,
+        num_travelers: itineraryDetails?.numberOfPeople || 1,
+        pace: itineraryDetails?.pace || 'balanced',
+        budget: itineraryDetails?.budget || 'moderate',
+        food_preference: itineraryDetails?.foodPreference || '',
+        start_date: itineraryDetails?.startDate || undefined,
+        end_date: itineraryDetails?.endDate || undefined,
+      });
+
+      // Generate itinerary via API
+      if (trip._apiId) {
+        await generateItineraryViaApi(trip.id);
+        await tripsApi.save(trip._apiId);
+      }
+
+      toast.success('Trip saved!', { description: 'You can access it anytime from your trips' });
+      setTimeout(() => navigate('/trips'), 1000);
+      return;
+    } catch {
+      // Fallback to local save
+    }
+
+    // Local fallback
     const days = Object.entries(itinerary).map(([dayNum, items]) => ({
       dayNumber: parseInt(dayNum),
       items: items.map((item: ItineraryItem) => ({
         id: item.id,
         place: selections.find(s => s.place.id === item.placeId)?.place || {
-          id: item.placeId,
-          name: item.placeName,
-          category: item.category,
-          area: item.area,
-          duration: item.duration,
-          description: '',
-          tags: [],
-          rating: 0,
-          reviews: 0
+          id: item.placeId, name: item.placeName, category: item.category,
+          area: item.area, duration: item.duration, description: '', tags: [],
+          rating: 0, reviews: 0
         },
-        startTime: item.time,
-        endTime: '',
+        startTime: item.time, endTime: '',
         duration: parseInt(item.duration.split('-')[0]) || 2,
         type: (item.isMeal ? 'meal' : 'activity') as 'activity' | 'meal' | 'travel',
-        notes: item.notes
-      }))
+        notes: item.notes,
+      })),
     }));
-    
-    // Create trip
-    const tripId = createTrip({
+
+    createTrip({
       title: itineraryDetails?.name || 'My Trip',
-      cityId: selectedCity || '',
-      cityName: city?.name || 'Unknown',
-      status: 'saved',
-      coverImage,
-      itineraryDetails: itineraryDetails!,
-      days,
-      selections
+      cityId: selectedCity || '', cityName: city?.name || 'Unknown',
+      status: 'saved', coverImage,
+      itineraryDetails: itineraryDetails!, days, selections,
     });
-    
-    toast.success('Trip saved!', {
-      description: 'You can access it anytime from your trips',
-      icon: '💾'
-    });
-    
-    setTimeout(() => {
-      navigate('/trips');
-    }, 1500);
+
+    toast.success('Trip saved!', { description: 'You can access it anytime from your trips' });
+    setTimeout(() => navigate('/trips'), 1500);
   };
 
   const handleShare = () => {

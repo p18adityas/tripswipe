@@ -22,13 +22,14 @@ export function SignUp() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
-    
+
     try {
       await signUp(formData.email || formData.phone, formData.password, formData.name);
       toast.success('Account created successfully!');
       navigate('/auth/profile-setup');
-    } catch (error) {
-      toast.error('Failed to create account');
+    } catch (error: any) {
+      const msg = error?.message || 'Failed to create account';
+      toast.error(msg);
     } finally {
       setLoading(false);
     }

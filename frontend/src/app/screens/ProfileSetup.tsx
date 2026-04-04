@@ -19,7 +19,7 @@ const steps = [
 
 export function ProfileSetup() {
   const navigate = useNavigate();
-  const { user, updateProfile, completeProfileSetup, getPendingAction, clearPendingAction } = useUserStore();
+  const { user, updateProfile, completeProfileSetup, submitProfileSetup, getPendingAction, clearPendingAction } = useUserStore();
   const [currentStep, setCurrentStep] = useState<ProfileStep>('basic');
   const [loading, setLoading] = useState(false);
   
@@ -91,19 +91,32 @@ export function ProfileSetup() {
     }
     
     setLoading(true);
-    
-    // Save all profile data
-    updateProfile({
-      ...basicInfo,
-      passport: passportInfo.number ? passportInfo : undefined,
-      visa: visaInfo.hasVisa ? visaInfo : undefined
-    });
-    
-    completeProfileSetup();
-    
-    await new Promise(resolve => setTimeout(resolve, 500));
-    
-    toast.success('Profile setup complete!');
+
+    try {
+      // Save profile data via API
+      await submitProfileSetup({
+        basicInfo: {
+          fullName: basicInfo.fullName,
+          phone: basicInfo.phone,
+          nationality: basicInfo.nationality,
+          countryOfResidence: basicInfo.countryOfResidence,
+          dateOfBirth: basicInfo.dateOfBirth,
+        },
+        passport: passportInfo.number ? passportInfo : undefined,
+        visa: visaInfo.hasVisa ? visaInfo : undefined,
+      });
+
+      toast.success('Profile setup complete!');
+    } catch {
+      // Fallback to local-only save if API fails
+      updateProfile({
+        ...basicInfo,
+        passport: passportInfo.number ? passportInfo : undefined,
+        visa: visaInfo.hasVisa ? visaInfo : undefined,
+      });
+      completeProfileSetup();
+      toast.success('Profile saved locally');
+    }
     
     // Check if there's a pending action
     const pendingAction = getPendingAction();

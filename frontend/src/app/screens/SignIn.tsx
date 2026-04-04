@@ -21,13 +21,16 @@ export function SignIn() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
-    
+
     try {
       await signIn(formData.email || formData.phone, formData.password);
       toast.success('Welcome back!');
-      navigate('/auth/profile-setup');
-    } catch (error) {
-      toast.error('Invalid credentials');
+      // Go to profile setup only if not complete, otherwise go home
+      const { profileSetupComplete } = useUserStore.getState();
+      navigate(profileSetupComplete ? '/' : '/auth/profile-setup');
+    } catch (error: any) {
+      const msg = error?.message || 'Invalid email or password';
+      toast.error(msg);
     } finally {
       setLoading(false);
     }
