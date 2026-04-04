@@ -1,0 +1,23 @@
+{
+  "collectionName": "components_place_cost_estimates",
+  "info": {
+    "displayName": "Cost Estimate",
+    "description": "Price range for a place"
+  },
+  "attributes": {
+    "currency": {
+      "type": "enumeration",
+      "enum": ["USD", "EUR", "GBP", "INR", "NZD", "AUD", "JPY", "THB", "SGD", "AED"],
+      "default": "USD"
+    },
+    "min_price": {
+      "type": "decimal"
+    },
+    "max_price": {
+      "type": "decimal"
+    },
+    "price_note": {
+      "type": "string"
+    }
+  }
+}

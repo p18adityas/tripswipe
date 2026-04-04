@@ -1,0 +1,116 @@
+{
+  "kind": "collectionType",
+  "collectionName": "places",
+  "info": {
+    "singularName": "place",
+    "pluralName": "places",
+    "displayName": "Place",
+    "description": "Attractions, activities, and stays — the core curated content"
+  },
+  "options": {
+    "draftAndPublish": true
+  },
+  "pluginOptions": {},
+  "attributes": {
+    "name": {
+      "type": "string",
+      "required": true
+    },
+    "slug": {
+      "type": "uid",
+      "targetField": "name"
+    },
+    "category": {
+      "type": "enumeration",
+      "enum": ["attraction", "activity", "stay"],
+      "required": true
+    },
+    "subcategory": {
+      "type": "string"
+    },
+    "city": {
+      "type": "relation",
+      "relation": "manyToOne",
+      "target": "api::city.city",
+      "inversedBy": "places"
+    },
+    "country": {
+      "type": "relation",
+      "relation": "manyToOne",
+      "target": "api::country.country"
+    },
+    "location": {
+      "type": "component",
+      "repeatable": false,
+      "component": "place.location-details"
+    },
+    "cover_image": {
+      "type": "media",
+      "multiple": false,
+      "allowedTypes": ["images"]
+    },
+    "images": {
+      "type": "media",
+      "multiple": true,
+      "allowedTypes": ["images"]
+    },
+    "description": {
+      "type": "richtext"
+    },
+    "short_description": {
+      "type": "text",
+      "maxLength": 200
+    },
+    "operating_hours": {
+      "type": "component",
+      "repeatable": false,
+      "component": "place.operating-hours"
+    },
+    "cost": {
+      "type": "component",
+      "repeatable": false,
+      "component": "place.cost-estimate"
+    },
+    "cost_level": {
+      "type": "enumeration",
+      "enum": ["free", "budget", "moderate", "premium", "luxury"]
+    },
+    "duration_hours": {
+      "type": "decimal"
+    },
+    "best_months": {
+      "type": "json"
+    },
+    "suitable_for": {
+      "type": "json"
+    },
+    "extra_attributes": {
+      "type": "json"
+    },
+    "tags": {
+      "type": "relation",
+      "relation": "manyToMany",
+      "target": "api::tag.tag",
+      "inversedBy": "places"
+    },
+    "rating": {
+      "type": "decimal",
+      "min": 0,
+      "max": 5
+    },
+    "area": {
+      "type": "string"
+    },
+    "duration_label": {
+      "type": "string"
+    },
+    "popularity_score": {
+      "type": "integer",
+      "default": 0
+    },
+    "is_featured": {
+      "type": "boolean",
+      "default": false
+    }
+  }
+}

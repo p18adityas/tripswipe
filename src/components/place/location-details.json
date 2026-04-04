@@ -1,0 +1,21 @@
+{
+  "collectionName": "components_place_location_details",
+  "info": {
+    "displayName": "Location Details",
+    "description": "Geographic coordinates and address for a place"
+  },
+  "attributes": {
+    "latitude": {
+      "type": "float"
+    },
+    "longitude": {
+      "type": "float"
+    },
+    "address": {
+      "type": "text"
+    },
+    "google_maps_url": {
+      "type": "string"
+    }
+  }
+}

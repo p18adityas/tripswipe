@@ -1,0 +1,36 @@
+{
+  "kind": "collectionType",
+  "collectionName": "swipes",
+  "info": {
+    "singularName": "swipe",
+    "pluralName": "swipes",
+    "displayName": "Swipe",
+    "description": "User swipe interactions on places"
+  },
+  "options": {
+    "draftAndPublish": false
+  },
+  "pluginOptions": {},
+  "attributes": {
+    "user": {
+      "type": "relation",
+      "relation": "manyToOne",
+      "target": "plugin::users-permissions.user"
+    },
+    "place": {
+      "type": "relation",
+      "relation": "manyToOne",
+      "target": "api::place.place"
+    },
+    "action": {
+      "type": "enumeration",
+      "enum": ["like", "super-like", "discard"],
+      "required": true
+    },
+    "trip_context": {
+      "type": "relation",
+      "relation": "manyToOne",
+      "target": "api::trip.trip"
+    }
+  }
+}

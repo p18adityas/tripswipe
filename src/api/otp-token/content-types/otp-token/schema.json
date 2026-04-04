@@ -1,0 +1,37 @@
+{
+  "kind": "collectionType",
+  "collectionName": "otp_tokens",
+  "info": {
+    "singularName": "otp-token",
+    "pluralName": "otp-tokens",
+    "displayName": "OTP Token",
+    "description": "Phone OTP verification tokens"
+  },
+  "options": {
+    "draftAndPublish": false
+  },
+  "pluginOptions": {},
+  "attributes": {
+    "phone": {
+      "type": "string",
+      "required": true
+    },
+    "code": {
+      "type": "string",
+      "required": true,
+      "maxLength": 6
+    },
+    "expires_at": {
+      "type": "datetime",
+      "required": true
+    },
+    "verified": {
+      "type": "boolean",
+      "default": false
+    },
+    "attempts": {
+      "type": "integer",
+      "default": 0
+    }
+  }
+}

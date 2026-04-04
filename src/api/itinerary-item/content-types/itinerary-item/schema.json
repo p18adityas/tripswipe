@@ -1,0 +1,51 @@
+{
+  "kind": "collectionType",
+  "collectionName": "itinerary_items",
+  "info": {
+    "singularName": "itinerary-item",
+    "pluralName": "itinerary-items",
+    "displayName": "Itinerary Item",
+    "description": "Individual items within a trip itinerary"
+  },
+  "options": {
+    "draftAndPublish": false
+  },
+  "pluginOptions": {},
+  "attributes": {
+    "trip": {
+      "type": "relation",
+      "relation": "manyToOne",
+      "target": "api::trip.trip",
+      "inversedBy": "itinerary_items"
+    },
+    "place": {
+      "type": "relation",
+      "relation": "manyToOne",
+      "target": "api::place.place"
+    },
+    "day_number": {
+      "type": "integer",
+      "required": true,
+      "min": 1
+    },
+    "order_in_day": {
+      "type": "integer",
+      "required": true,
+      "min": 1
+    },
+    "start_time": {
+      "type": "time"
+    },
+    "end_time": {
+      "type": "time"
+    },
+    "notes": {
+      "type": "text"
+    },
+    "type": {
+      "type": "enumeration",
+      "enum": ["attraction", "activity", "stay", "transit", "meal", "free_time"],
+      "required": true
+    }
+  }
+}

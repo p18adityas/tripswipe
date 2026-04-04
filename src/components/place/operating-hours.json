@@ -1,0 +1,22 @@
+{
+  "collectionName": "components_place_operating_hours",
+  "info": {
+    "displayName": "Operating Hours",
+    "description": "Opening and closing times for a place"
+  },
+  "attributes": {
+    "open": {
+      "type": "time"
+    },
+    "close": {
+      "type": "time"
+    },
+    "closed_days": {
+      "type": "json",
+      "required": false
+    },
+    "notes": {
+      "type": "string"
+    }
+  }
+}

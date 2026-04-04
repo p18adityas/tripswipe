@@ -1,0 +1,51 @@
+{
+  "kind": "collectionType",
+  "collectionName": "up_users",
+  "info": {
+    "singularName": "user",
+    "pluralName": "users",
+    "displayName": "User"
+  },
+  "options": {
+    "timestamps": true
+  },
+  "attributes": {
+    "phone": {
+      "type": "string"
+    },
+    "phone_verified": {
+      "type": "boolean",
+      "default": false
+    },
+    "display_name": {
+      "type": "string"
+    },
+    "avatar": {
+      "type": "media",
+      "multiple": false,
+      "allowedTypes": ["images"]
+    },
+    "nationality": {
+      "type": "string"
+    },
+    "country_of_residence": {
+      "type": "string"
+    },
+    "date_of_birth": {
+      "type": "date"
+    },
+    "passport": {
+      "type": "json"
+    },
+    "visa": {
+      "type": "json"
+    },
+    "profile_setup_complete": {
+      "type": "boolean",
+      "default": false
+    },
+    "travel_preferences": {
+      "type": "json"
+    }
+  }
+}

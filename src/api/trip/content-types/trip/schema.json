@@ -1,0 +1,101 @@
+{
+  "kind": "collectionType",
+  "collectionName": "trips",
+  "info": {
+    "singularName": "trip",
+    "pluralName": "trips",
+    "displayName": "Trip",
+    "description": "User-created trip plans"
+  },
+  "options": {
+    "draftAndPublish": false
+  },
+  "pluginOptions": {},
+  "attributes": {
+    "name": {
+      "type": "string",
+      "required": true
+    },
+    "user": {
+      "type": "relation",
+      "relation": "manyToOne",
+      "target": "plugin::users-permissions.user"
+    },
+    "destination": {
+      "type": "relation",
+      "relation": "manyToOne",
+      "target": "api::city.city"
+    },
+    "country": {
+      "type": "relation",
+      "relation": "manyToOne",
+      "target": "api::country.country"
+    },
+    "num_days": {
+      "type": "integer",
+      "required": true,
+      "min": 1,
+      "max": 60
+    },
+    "num_travelers": {
+      "type": "integer",
+      "required": true,
+      "default": 1,
+      "min": 1,
+      "max": 50
+    },
+    "start_date": {
+      "type": "date"
+    },
+    "end_date": {
+      "type": "date"
+    },
+    "pace": {
+      "type": "enumeration",
+      "enum": ["relaxed", "balanced", "packed"],
+      "default": "balanced"
+    },
+    "budget": {
+      "type": "enumeration",
+      "enum": ["budget", "moderate", "luxury"],
+      "default": "moderate"
+    },
+    "food_preference": {
+      "type": "string"
+    },
+    "cover_image": {
+      "type": "media",
+      "multiple": false,
+      "allowedTypes": ["images"]
+    },
+    "status": {
+      "type": "enumeration",
+      "enum": ["draft", "planned", "saved", "shared", "active", "completed", "archived"],
+      "default": "draft"
+    },
+    "share_token": {
+      "type": "string",
+      "unique": true
+    },
+    "is_public": {
+      "type": "boolean",
+      "default": false
+    },
+    "shortlisted_places": {
+      "type": "relation",
+      "relation": "manyToMany",
+      "target": "api::place.place"
+    },
+    "itinerary_items": {
+      "type": "relation",
+      "relation": "oneToMany",
+      "target": "api::itinerary-item.itinerary-item",
+      "mappedBy": "trip"
+    },
+    "collaborators": {
+      "type": "relation",
+      "relation": "manyToMany",
+      "target": "plugin::users-permissions.user"
+    }
+  }
+}
