@@ -23,22 +23,27 @@ module.exports = createCoreController('api::otp-token.otp-token', ({ strapi }) =
     }
 
     // Send OTP
-    const devCode = await otpService.sendOtp(phone);
+    try {
+      const devCode = await otpService.sendOtp(phone);
 
-    // In dev mode, store the code locally
-    if (devCode) {
-      await strapi.db.query('api::otp-token.otp-token').create({
-        data: {
-          phone,
-          code: devCode,
-          expires_at: new Date(Date.now() + 5 * 60 * 1000).toISOString(),
-          verified: false,
-          attempts: 0,
-        },
-      });
+      // In dev mode (no Twilio), store the code locally
+      if (devCode) {
+        await strapi.db.query('api::otp-token.otp-token').create({
+          data: {
+            phone,
+            code: devCode,
+            expires_at: new Date(Date.now() + 5 * 60 * 1000).toISOString(),
+            verified: false,
+            attempts: 0,
+          },
+        });
+      }
+
+      ctx.body = { success: true, message: 'OTP sent' };
+    } catch (err) {
+      strapi.log.error('OTP send error:', err.message);
+      return ctx.badRequest(err.message || 'Failed to send OTP');
     }
-
-    ctx.body = { success: true, message: 'OTP sent' };
   },
 
   /**
