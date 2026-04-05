@@ -274,6 +274,7 @@ export function Trips() {
                     onDelete={() => {
                       deleteTrip(trip.id);
                       toast.success('Trip deleted');
+                      navigate('/');
                     }}
                   />
                 </motion.div>
