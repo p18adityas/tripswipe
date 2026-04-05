@@ -16,8 +16,8 @@ function getToken(): string | null {
   return null;
 }
 
-async function request<T>(path: string, options: RequestInit = {}): Promise<T> {
-  const token = getToken();
+async function request<T>(path: string, options: RequestInit & { noAuth?: boolean } = {}): Promise<T> {
+  const token = options.noAuth ? null : getToken();
   const headers: Record<string, string> = {
     'Content-Type': 'application/json',
     ...(options.headers as Record<string, string> || {}),
@@ -26,7 +26,8 @@ async function request<T>(path: string, options: RequestInit = {}): Promise<T> {
     headers['Authorization'] = `Bearer ${token}`;
   }
 
-  const res = await fetch(`${BASE}${path}`, { ...options, headers });
+  const { noAuth: _, ...fetchOptions } = options;
+  const res = await fetch(`${BASE}${path}`, { ...fetchOptions, headers });
 
   if (!res.ok) {
     const body = await res.json().catch(() => ({}));
@@ -232,23 +233,24 @@ export const auth = {
 
 export const cities = {
   list(params?: string) {
-    return request<StrapiListResponse<ApiCity>>(`/cities?populate[0]=cover_image&populate[1]=country&populate[2]=state&pagination[pageSize]=50${params ? '&' + params : ''}`);
+    return request<StrapiListResponse<ApiCity>>(`/cities?populate[0]=cover_image&populate[1]=country&populate[2]=state&pagination[pageSize]=50${params ? '&' + params : ''}`, { noAuth: true });
   },
 
   get(id: number) {
-    return request<StrapiSingleResponse<ApiCity>>(`/cities/${id}?populate[0]=cover_image&populate[1]=country&populate[2]=state`);
+    return request<StrapiSingleResponse<ApiCity>>(`/cities/${id}?populate[0]=cover_image&populate[1]=country&populate[2]=state`, { noAuth: true });
   },
 };
 
 export const places = {
   list(params?: string) {
     const base = '/places?populate[0]=cover_image&populate[1]=images&populate[2]=tags&populate[3]=city&populate[4]=country&populate[5]=location&populate[6]=operating_hours&populate[7]=cost';
-    return request<StrapiListResponse<ApiPlace>>(`${base}${params ? '&' + params : ''}`);
+    return request<StrapiListResponse<ApiPlace>>(`${base}${params ? '&' + params : ''}`, { noAuth: true });
   },
 
   get(documentId: string) {
     return request<StrapiSingleResponse<ApiPlace>>(
-      `/places/${documentId}?populate[0]=cover_image&populate[1]=images&populate[2]=tags&populate[3]=city&populate[4]=country&populate[5]=location&populate[6]=operating_hours&populate[7]=cost`
+      `/places/${documentId}?populate[0]=cover_image&populate[1]=images&populate[2]=tags&populate[3]=city&populate[4]=country&populate[5]=location&populate[6]=operating_hours&populate[7]=cost`,
+      { noAuth: true }
     );
   },
 
@@ -261,7 +263,7 @@ export const places = {
 
 export const tags = {
   list() {
-    return request<StrapiListResponse<ApiTag>>('/tags?pagination[pageSize]=100');
+    return request<StrapiListResponse<ApiTag>>('/tags?pagination[pageSize]=100', { noAuth: true });
   },
 };
 

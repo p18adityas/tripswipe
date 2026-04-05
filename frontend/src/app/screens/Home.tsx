@@ -73,10 +73,12 @@ export function Home() {
 
         // Combine: regular cities first, then state destinations
         const all = [...regularCities, ...Array.from(stateGrouped.values())];
+        console.log('Destinations loaded:', all.length, 'regular:', regularCities.length, 'states:', stateGrouped.size, all.map(d => d.name));
         setDestinations(all);
         setLoaded(true);
       }
-    }).catch(() => {
+    }).catch((err) => {
+      console.error('Failed to fetch cities:', err);
       // Fallback to mock data
       setDestinations(mockCities.map(c => ({ ...c, _isState: false })));
       setLoaded(true);
