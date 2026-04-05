@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router';
-import { Plus, Search, Calendar, Users, MapPin, Clock } from 'lucide-react';
+import { Plus, Search, Calendar, Users, MapPin, Clock, Trash2 } from 'lucide-react';
 import { motion } from 'motion/react';
 import { useTripStore, TripStatus, Trip } from '../store/tripStore';
 import { useUserStore } from '../store/userStore';
@@ -8,6 +8,8 @@ import { Button } from '../components/ui/button';
 import { Input } from '../components/ui/input';
 import { ImageWithFallback } from '../components/figma/ImageWithFallback';
 import { BottomNav } from '../components/BottomNav';
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '../components/ui/alert-dialog';
+import { toast } from 'sonner';
 
 const statusTabs: { id: TripStatus | 'all'; label: string }[] = [
   { id: 'all', label: 'All' },
@@ -33,56 +35,82 @@ function formatRelativeTime(timestamp: number): string {
   return new Date(timestamp).toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
 }
 
-function TripCard({ trip, onClick }: { trip: Trip; onClick: () => void }) {
+function TripCard({ trip, onClick, onDelete }: { trip: Trip; onClick: () => void; onDelete: () => void }) {
   const statusColors = {
     draft: 'bg-slate-100 text-slate-700',
     saved: 'bg-blue-100 text-blue-700',
     shared: 'bg-purple-100 text-purple-700',
     archived: 'bg-gray-100 text-gray-600'
   };
-  
+
   const statusLabels = {
     draft: 'Draft',
     saved: 'Saved',
     shared: 'Shared',
     archived: 'Archived'
   };
-  
+
   return (
-    <motion.button
-      onClick={onClick}
+    <motion.div
       className="w-full bg-white rounded-2xl overflow-hidden shadow-sm hover:shadow-md transition-shadow border border-slate-100"
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
-      whileTap={{ scale: 0.98 }}
     >
       {/* Cover Image */}
-      <div className="relative h-40 overflow-hidden">
+      <div className="relative h-40 overflow-hidden cursor-pointer" onClick={onClick}>
         <ImageWithFallback
           src={trip.coverImage}
           alt={trip.title}
           className="w-full h-full object-cover"
         />
         <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/20 to-transparent" />
-        
+
         {/* Status Badge */}
         <div className="absolute top-3 right-3">
           <span className={`px-3 py-1 rounded-full text-xs font-medium ${statusColors[trip.status]}`}>
             {statusLabels[trip.status]}
           </span>
         </div>
+
+        {/* Delete Button */}
+        <div className="absolute top-3 left-3">
+          <AlertDialog>
+            <AlertDialogTrigger asChild>
+              <button
+                onClick={(e) => e.stopPropagation()}
+                className="w-8 h-8 rounded-full bg-black/40 backdrop-blur-sm flex items-center justify-center hover:bg-red-500/80 transition-colors"
+              >
+                <Trash2 className="w-4 h-4 text-white" />
+              </button>
+            </AlertDialogTrigger>
+            <AlertDialogContent>
+              <AlertDialogHeader>
+                <AlertDialogTitle>Delete trip?</AlertDialogTitle>
+                <AlertDialogDescription>
+                  This will permanently delete "{trip.title}". This action cannot be undone.
+                </AlertDialogDescription>
+              </AlertDialogHeader>
+              <AlertDialogFooter>
+                <AlertDialogCancel>Cancel</AlertDialogCancel>
+                <AlertDialogAction onClick={onDelete} className="bg-red-600 hover:bg-red-700">
+                  Delete
+                </AlertDialogAction>
+              </AlertDialogFooter>
+            </AlertDialogContent>
+          </AlertDialog>
+        </div>
       </div>
       
       {/* Card Content */}
-      <div className="p-4 text-left">
+      <div className="p-4 text-left cursor-pointer" onClick={onClick}>
         <h3 className="font-semibold text-lg mb-2 line-clamp-1">{trip.title}</h3>
-        
+
         <div className="flex items-center gap-4 text-sm text-slate-600 mb-3">
           <div className="flex items-center gap-1">
             <MapPin className="w-4 h-4" />
             <span>{trip.cityName}</span>
           </div>
-          
+
           {trip.itineraryDetails.startDate && (
             <div className="flex items-center gap-1">
               <Calendar className="w-4 h-4" />
@@ -92,7 +120,7 @@ function TripCard({ trip, onClick }: { trip: Trip; onClick: () => void }) {
             </div>
           )}
         </div>
-        
+
         <div className="flex items-center justify-between text-xs text-slate-500">
           <div className="flex items-center gap-3">
             <span>{trip.days.length} day{trip.days.length !== 1 ? 's' : ''}</span>
@@ -103,20 +131,20 @@ function TripCard({ trip, onClick }: { trip: Trip; onClick: () => void }) {
               </div>
             )}
           </div>
-          
+
           <div className="flex items-center gap-1">
             <Clock className="w-3 h-3" />
             <span>{formatRelativeTime(trip.updatedAt)}</span>
           </div>
         </div>
       </div>
-    </motion.button>
+    </motion.div>
   );
 }
 
 export function Trips() {
   const navigate = useNavigate();
-  const { trips, setCurrentTrip, fetchTrips, loading } = useTripStore();
+  const { trips, setCurrentTrip, fetchTrips, deleteTrip, loading } = useTripStore();
   const { isAuthenticated } = useUserStore();
   const [activeTab, setActiveTab] = useState<TripStatus | 'all'>('all');
   const [searchQuery, setSearchQuery] = useState('');
@@ -240,7 +268,14 @@ export function Trips() {
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: index * 0.05 }}
                 >
-                  <TripCard trip={trip} onClick={() => handleTripClick(trip.id)} />
+                  <TripCard
+                    trip={trip}
+                    onClick={() => handleTripClick(trip.id)}
+                    onDelete={() => {
+                      deleteTrip(trip.id);
+                      toast.success('Trip deleted');
+                    }}
+                  />
                 </motion.div>
               ))}
             </div>
