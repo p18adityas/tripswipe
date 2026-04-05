@@ -85,8 +85,10 @@ export function Home() {
   );
 
   const handleDestinationSelect = (dest: Destination) => {
+    // Reset previous session's swipes when switching destinations
+    useAppStore.getState().reset();
+
     if (dest._isState) {
-      // State-level destination — store district IDs and navigate
       useAppStore.setState({
         selectedCity: dest.id,
         selectedCityApiId: null,
