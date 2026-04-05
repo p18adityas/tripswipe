@@ -189,8 +189,13 @@ export function GeneratedItinerary() {
     }
 
     const city = cities.find(c => c.id === selectedCity);
-    const coverImage = selections[0]?.place ? (placeImageMap[selections[0].place.id]?.[0] || '') : '';
-    const { selectedCityApiId } = useAppStore.getState();
+    const { selectedCityApiId, _stateFilter } = useAppStore.getState();
+    const destinationName = _stateFilter || city?.name || selectedCity || 'My Trip';
+    // Cover image: try placeImageMap, then place.images from selections
+    const firstPlace = selections[0]?.place;
+    const coverImage = firstPlace
+      ? (placeImageMap[firstPlace.id]?.[0] || firstPlace.images?.[0] || '')
+      : '';
 
     // Try to create trip via API first
     try {
@@ -239,7 +244,7 @@ export function GeneratedItinerary() {
 
     createTrip({
       title: itineraryDetails?.name || 'My Trip',
-      cityId: selectedCity || '', cityName: city?.name || 'Unknown',
+      cityId: selectedCity || '', cityName: destinationName,
       status: 'saved', coverImage,
       itineraryDetails: itineraryDetails!, days, selections,
     });
