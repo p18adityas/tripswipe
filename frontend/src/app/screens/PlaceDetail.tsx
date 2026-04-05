@@ -1,21 +1,47 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router';
 import { ArrowLeft, Heart, X, Star, Clock, MapPin, DollarSign, Calendar } from 'lucide-react';
-import { places } from '../data/mockData';
+import { places as mockPlaces, Place } from '../data/mockData';
 import { useAppStore } from '../store/appStore';
 import { placeImageMap } from '../data/images';
 import { ImageWithFallback } from '../components/figma/ImageWithFallback';
 import { Button } from '../components/ui/button';
 import { Badge } from '../components/ui/badge';
 import { toast } from 'sonner';
+import { places as placesApi, toFrontendPlace } from '../services/api';
 
 export function PlaceDetail() {
   const { placeId } = useParams<{ placeId: string }>();
   const navigate = useNavigate();
   const { addSelection, addDiscard, selections } = useAppStore();
-  
-  const place = places.find(p => p.id === placeId);
+
+  // Try mock data first, then check selections, then fetch from API
+  const mockPlace = mockPlaces.find(p => p.id === placeId);
+  const selectedPlace = selections.find(s => s.place.id === placeId)?.place;
+  const [place, setPlace] = useState<Place | null>(mockPlace || selectedPlace || null);
+  const [loading, setLoading] = useState(!place);
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
+
+  useEffect(() => {
+    if (place || !placeId) return;
+    // Fetch from API by documentId
+    placesApi.get(placeId)
+      .then(res => {
+        if (res.data) {
+          setPlace(toFrontendPlace(res.data) as unknown as Place);
+        }
+      })
+      .catch(() => navigate(-1))
+      .finally(() => setLoading(false));
+  }, [placeId]);
+
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="w-12 h-12 rounded-full border-4 border-blue-200 border-t-blue-600 animate-spin" />
+      </div>
+    );
+  }
 
   if (!place) {
     navigate(-1);
