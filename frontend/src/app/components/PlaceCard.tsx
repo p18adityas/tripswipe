@@ -22,7 +22,7 @@ export function PlaceCard({ place, onSwipe, onTap, isTop }: PlaceCardProps) {
   const rotate = useTransform(x, [-200, 0, 200], [-15, 0, 15]);
   const opacity = useTransform(x, [-200, -100, 0, 100, 200], [0, 1, 1, 1, 0]);
 
-  const images = placeImageMap[place.id] || [];
+  const images = placeImageMap[place.id] || place.images || [];
 
   const handleDragEnd = (event: MouseEvent | TouchEvent | PointerEvent, info: PanInfo) => {
     const threshold = 100;

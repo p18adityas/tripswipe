@@ -349,7 +349,8 @@ export function GeneratedItinerary() {
           ) : (
             <div className="space-y-4">
               {itinerary[currentDay]?.map((item, index) => {
-                const images = item.placeId !== 'meal' ? (placeImageMap[item.placeId] || []) : [];
+                const placeSelection = selections.find(s => s.place.id === item.placeId);
+                const images = item.placeId !== 'meal' ? (placeImageMap[item.placeId] || placeSelection?.place?.images || []) : [];
                 
                 return (
                   <div key={item.id} className="relative">

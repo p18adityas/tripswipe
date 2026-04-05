@@ -22,7 +22,7 @@ export function PlaceDetail() {
     return null;
   }
 
-  const images = placeImageMap[place.id] || [];
+  const images = placeImageMap[place.id] || place.images || [];
   const isSelected = selections.some(s => s.place.id === place.id);
 
   const handleDiscard = () => {

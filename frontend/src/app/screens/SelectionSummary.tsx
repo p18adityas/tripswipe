@@ -29,7 +29,7 @@ export function SelectionSummary() {
   };
 
   const SelectionCard = ({ selection, onRemove }: any) => {
-    const images = placeImageMap[selection.place.id] || [];
+    const images = placeImageMap[selection.place.id] || selection.place.images || [];
     
     return (
       <div className="flex gap-4 p-4 bg-white rounded-2xl border border-slate-100 shadow-sm hover:shadow-md transition-shadow">
