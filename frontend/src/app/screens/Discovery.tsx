@@ -56,6 +56,7 @@ export function Discovery() {
         .then(res => {
           if (res.data && res.data.length > 0) {
             setCityPlaces(res.data.map(p => toFrontendPlace(p) as unknown as Place));
+            setCurrentIndex(0);
           }
         })
         .catch(() => {})
@@ -261,7 +262,12 @@ export function Discovery() {
       {/* Card Stack */}
       <div className="px-4 pt-6 pb-4">
         <div className="relative w-full mx-auto max-w-md" style={{ height: 'calc(100vh - 280px)' }}>
-          {availablePlaces.length === 0 ? (
+          {loading ? (
+            <div className="absolute inset-0 flex flex-col items-center justify-center text-center px-8">
+              <div className="w-16 h-16 rounded-full border-4 border-blue-200 border-t-blue-600 animate-spin mb-4" />
+              <p className="text-slate-500">Loading places...</p>
+            </div>
+          ) : availablePlaces.length === 0 ? (
             <div className="absolute inset-0 flex flex-col items-center justify-center text-center px-8">
               {/* Icon/Graphic */}
               <div className="relative mb-8">
