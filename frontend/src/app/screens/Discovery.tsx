@@ -149,7 +149,7 @@ export function Discovery() {
     navigate('/summary');
   };
 
-  if (!city) return null;
+  if (!city && !_stateFilter) return null;
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-slate-50 to-white relative pb-32">
