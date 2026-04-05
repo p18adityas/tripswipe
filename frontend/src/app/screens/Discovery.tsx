@@ -33,7 +33,9 @@ export function Discovery() {
     selectedCityApiId,
   } = useAppStore();
 
+  const { _stateFilter, _districtIds } = useAppStore();
   const city = mockCities.find(c => c.id === cityId);
+  const destinationName = _stateFilter || city?.name || cityId;
   const [cityPlaces, setCityPlaces] = useState<Place[]>(
     mockPlaces.filter(p => p.cityId === cityId)
   );
@@ -48,9 +50,22 @@ export function Discovery() {
     if (!cityId) return;
     setLoading(true);
 
+    // State-level destination: fetch by state name (all districts)
+    if (_stateFilter) {
+      placesApi.list(`filters[city][state][name]=${_stateFilter}&pagination[pageSize]=100&sort=popularity_score:desc`)
+        .then(res => {
+          if (res.data && res.data.length > 0) {
+            setCityPlaces(res.data.map(p => toFrontendPlace(p) as unknown as Place));
+          }
+        })
+        .catch(() => {})
+        .finally(() => setLoading(false));
+      return;
+    }
+
+    // City-level destination
     const apiCityId = selectedCityApiId || parseInt(cityId);
     if (!apiCityId || isNaN(apiCityId)) {
-      // Fallback: try fetching by city name filter
       const cityName = city?.name;
       if (cityName) {
         placesApi.list(`filters[city][name]=${cityName}&pagination[pageSize]=50&sort=popularity_score:desc`)
@@ -73,11 +88,9 @@ export function Discovery() {
           setCityPlaces(res.data.map(p => toFrontendPlace(p) as unknown as Place));
         }
       })
-      .catch(() => {
-        // Keep mock data as fallback
-      })
+      .catch(() => {})
       .finally(() => setLoading(false));
-  }, [cityId, selectedCityApiId]);
+  }, [cityId, selectedCityApiId, _stateFilter]);
 
   const availablePlaces = cityPlaces.filter(
     place => !selections.some(s => s.place.id === place.id) && !discarded.includes(place.id)
@@ -86,10 +99,10 @@ export function Discovery() {
   const currentPlace = availablePlaces[currentIndex];
 
   useEffect(() => {
-    if (!city && !loading) {
+    if (!city && !_stateFilter && !loading) {
       navigate('/');
     }
-  }, [city, loading, navigate]);
+  }, [city, _stateFilter, loading, navigate]);
 
   useEffect(() => {
     setCurrentIndex(0);
@@ -151,7 +164,7 @@ export function Discovery() {
           </button>
           
           <div className="text-center flex-1">
-            <h1 className="font-semibold">{city.name}</h1>
+            <h1 className="font-semibold">{destinationName}</h1>
             <p className="text-xs text-slate-500">
               {currentIndex + 1} / {cityPlaces.length}
             </p>
@@ -268,7 +281,7 @@ export function Discovery() {
                 You're All Caught Up!
               </h3>
               <p className="text-slate-600 mb-2 text-lg">
-                You've explored everything in {city.name} 🎉
+                You've explored everything in {destinationName} 🎉
               </p>
               <p className="text-slate-500 mb-8 text-sm">
                 {selections.length > 0 

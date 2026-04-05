@@ -37,6 +37,8 @@ export interface Trip {
 interface AppState {
   selectedCity: string | null;
   selectedCityApiId: number | null;
+  _stateFilter: string | null; // e.g. "Mizoram" — fetch places by state instead of city
+  _districtIds: number[]; // API city IDs belonging to this state
   selections: Selection[];
   discarded: string[];
   history: Array<{ type: 'like' | 'super-like' | 'discard'; placeId: string; apiPlaceId?: number; timestamp: number }>;
@@ -57,6 +59,8 @@ interface AppState {
 export const useAppStore = create<AppState>(persist((set, get) => ({
   selectedCity: null,
   selectedCityApiId: null,
+  _stateFilter: null,
+  _districtIds: [],
   selections: [],
   discarded: [],
   history: [],
@@ -133,6 +137,8 @@ export const useAppStore = create<AppState>(persist((set, get) => ({
   reset: () => set({
     selectedCity: null,
     selectedCityApiId: null,
+    _stateFilter: null,
+    _districtIds: [],
     selections: [],
     discarded: [],
     history: [],
