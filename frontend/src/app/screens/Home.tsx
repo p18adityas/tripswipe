@@ -9,6 +9,22 @@ import { Input } from '../components/ui/input';
 import { BottomNav } from '../components/BottomNav';
 import { cities as citiesApi, toFrontendCity } from '../services/api';
 
+// Fallback cover images for cities without uploaded media
+const cityImageFallbacks: Record<string, string> = {
+  // Mizoram districts — all use the Mizoram cover
+  'aizawl': 'https://images.unsplash.com/photo-1649321588233-b8d19c473664?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&q=80&w=1080',
+  'lunglei': 'https://images.unsplash.com/photo-1649321588233-b8d19c473664?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&q=80&w=1080',
+  'siaha': 'https://images.unsplash.com/photo-1649321588233-b8d19c473664?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&q=80&w=1080',
+  'champhai': 'https://images.unsplash.com/photo-1649321588233-b8d19c473664?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&q=80&w=1080',
+  'kolasib': 'https://images.unsplash.com/photo-1649321588233-b8d19c473664?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&q=80&w=1080',
+  'serchhip': 'https://images.unsplash.com/photo-1649321588233-b8d19c473664?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&q=80&w=1080',
+  'lawngtlai': 'https://images.unsplash.com/photo-1649321588233-b8d19c473664?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&q=80&w=1080',
+  'mamit': 'https://images.unsplash.com/photo-1649321588233-b8d19c473664?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&q=80&w=1080',
+  'khawzawl': 'https://images.unsplash.com/photo-1649321588233-b8d19c473664?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&q=80&w=1080',
+  'saitual': 'https://images.unsplash.com/photo-1649321588233-b8d19c473664?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&q=80&w=1080',
+  'hnahthial': 'https://images.unsplash.com/photo-1649321588233-b8d19c473664?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&q=80&w=1080',
+};
+
 export function Home() {
   const navigate = useNavigate();
   const setSelectedCity = useAppStore((state) => state.setSelectedCity);
@@ -19,16 +35,14 @@ export function Home() {
     citiesApi.list().then((res) => {
       if (res.data && res.data.length > 0) {
         const mapped = res.data.map(toFrontendCity);
-        // Keep mock image URLs as fallback where API has no cover_image
         const withImages = mapped.map(c => {
           const mock = mockCities.find(m => m.name.toLowerCase() === c.name.toLowerCase());
-          return { ...c, image: c.image || mock?.image || '' };
+          const fallback = cityImageFallbacks[c.name.toLowerCase()];
+          return { ...c, image: c.image || mock?.image || fallback || '' };
         });
         setCities(withImages);
       }
-    }).catch(() => {
-      // Fallback to mock data if API fails
-    });
+    }).catch(() => {});
   }, []);
 
   const filteredCities = cities.filter(city =>
