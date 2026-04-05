@@ -232,23 +232,23 @@ export const auth = {
 
 export const cities = {
   list(params?: string) {
-    return request<StrapiListResponse<ApiCity>>(`/cities?populate=cover_image,country,state${params ? '&' + params : ''}`);
+    return request<StrapiListResponse<ApiCity>>(`/cities?populate[0]=cover_image&populate[1]=country&populate[2]=state&pagination[pageSize]=50${params ? '&' + params : ''}`);
   },
 
   get(id: number) {
-    return request<StrapiSingleResponse<ApiCity>>(`/cities/${id}?populate=cover_image,country,state`);
+    return request<StrapiSingleResponse<ApiCity>>(`/cities/${id}?populate[0]=cover_image&populate[1]=country&populate[2]=state`);
   },
 };
 
 export const places = {
   list(params?: string) {
-    const base = '/places?populate=cover_image,images,tags,city,country,location,operating_hours,cost';
+    const base = '/places?populate[0]=cover_image&populate[1]=images&populate[2]=tags&populate[3]=city&populate[4]=country&populate[5]=location&populate[6]=operating_hours&populate[7]=cost';
     return request<StrapiListResponse<ApiPlace>>(`${base}${params ? '&' + params : ''}`);
   },
 
   get(documentId: string) {
     return request<StrapiSingleResponse<ApiPlace>>(
-      `/places/${documentId}?populate=cover_image,images,tags,city,country,location,operating_hours,cost`
+      `/places/${documentId}?populate[0]=cover_image&populate[1]=images&populate[2]=tags&populate[3]=city&populate[4]=country&populate[5]=location&populate[6]=operating_hours&populate[7]=cost`
     );
   },
 
@@ -309,7 +309,7 @@ export const trips = {
 
   get(documentId: string) {
     return request<StrapiSingleResponse<ApiTrip>>(
-      `/trips/${documentId}?populate=destination,country,cover_image,shortlisted_places.cover_image,itinerary_items.place.cover_image,itinerary_items.place.tags`
+      `/trips/${documentId}?populate[0]=destination&populate[1]=country&populate[2]=cover_image&populate[3]=shortlisted_places.cover_image&populate[4]=itinerary_items.place.cover_image&populate[5]=itinerary_items.place.tags`
     );
   },
 
@@ -449,7 +449,7 @@ export function toFrontendCity(c: ApiCity) {
     id: String(c.id),
     name: c.name,
     country: stateName ? `${stateName}, ${countryName}` : countryName,
-    image: c.cover_image?.url || c.extra_attributes?.image_urls?.[0] || '',
+    image: c.cover_image?.url || (c as any).extra_attributes?.image_urls?.[0] || '',
     _apiId: c.id,
     _documentId: c.documentId,
   };
