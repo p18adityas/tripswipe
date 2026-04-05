@@ -31,9 +31,8 @@ export function Home() {
   const navigate = useNavigate();
   const setSelectedCity = useAppStore((state) => state.setSelectedCity);
   const [searchQuery, setSearchQuery] = useState('');
-  const [destinations, setDestinations] = useState<Destination[]>(
-    mockCities.map(c => ({ ...c, _isState: false }))
-  );
+  const [destinations, setDestinations] = useState<Destination[]>([]);
+  const [loaded, setLoaded] = useState(false);
 
   useEffect(() => {
     citiesApi.list().then((res) => {
@@ -75,8 +74,13 @@ export function Home() {
         // Combine: regular cities first, then state destinations
         const all = [...regularCities, ...Array.from(stateGrouped.values())];
         setDestinations(all);
+        setLoaded(true);
       }
-    }).catch(() => {});
+    }).catch(() => {
+      // Fallback to mock data
+      setDestinations(mockCities.map(c => ({ ...c, _isState: false })));
+      setLoaded(true);
+    });
   }, []);
 
   const filteredDestinations = destinations.filter(d =>
@@ -176,6 +180,11 @@ export function Home() {
             transition={{ delay: 0.2, duration: 0.6, ease: "easeOut" }}
           >
             <h2 className="text-lg font-medium mb-4">Explore Destinations</h2>
+            {!loaded && destinations.length === 0 && (
+              <div className="flex justify-center py-12">
+                <div className="w-10 h-10 rounded-full border-4 border-blue-200 border-t-blue-600 animate-spin" />
+              </div>
+            )}
             <div className="grid grid-cols-2 gap-4">
               {destinations.map((dest, index) => (
                 <motion.button
